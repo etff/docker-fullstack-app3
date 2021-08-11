@@ -1,0 +1,23 @@
+language: generic
+
+sudo: required
+
+services:
+  - docker
+
+before_install:
+  - docker build -t wish2rich/react-test-app -f ./frontend/Dockerfile.dev ./frontend
+
+script:
+  - docker run -e CI=true wish2rich/react-test-app npm run test
+
+after_success:
+  - docker build -t wish2rich/docker-frontend ./frontend
+  - docker build -t wish2rich/docker-backend ./backend
+  - docker build -t wish2rich/docker-nginx ./nginx
+
+  - echo "$DOCKER_HUB_PASSWORD" | docker login -u "$DOCKER_HUB_ID" -- password-stdin
+
+  - docker push wish2rich/docker-frontend
+  - docker push wish2rich/docker-backend
+  - docker push wish2rich/docker-nginx
